@@ -1,0 +1,42 @@
+# Environment files
+.env
+.env.*
+
+# Database dumps
+*.sql
+
+# Setup / installation scripts
+setup.php
+
+# Apache config (if confidential)
+.htaccess
+
+# Logs
+*.log
+logs/
+
+# Cache
+cache/
+tmp/
+temp/
+
+# Upload files
+public/uploads/
+
+# Node dependencies
+node_modules/
+
+# Composer dependencies
+vendor/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Build files
+public/assets/build/
+public/assets/dist/

@@ -181,3 +181,4 @@ This project was developed to practice and demonstrate:
 # 📜 License
 
 This project is open-source and intended for **learning and educational purposes**.
+# php-rbac-admin-dashboard

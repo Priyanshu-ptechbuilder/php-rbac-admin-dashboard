@@ -56,4 +56,18 @@ class Controller {
         echo json_encode($data);
         exit;
     }
+
+    protected function obfuscateId($id) {
+        if (!is_numeric($id)) return $id;
+        return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($id . '_id_secure_99'));
+    }
+
+    protected function deobfuscateId($hash) {
+        if (is_numeric($hash)) return (int)$hash;
+        $hash = str_replace(['-', '_'], ['+', '/'], $hash);
+        $decoded = base64_decode($hash);
+        if (!$decoded) return 0;
+        $parts = explode('_id_secure_99', $decoded);
+        return (isset($parts[0]) && is_numeric($parts[0])) ? (int)$parts[0] : 0;
+    }
 }

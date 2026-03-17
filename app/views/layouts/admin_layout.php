@@ -11,9 +11,15 @@
     <!--begin::Fonts (From Metronic index.html)-->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
     <!--end::Fonts-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!--begin::Global Stylesheets Bundle (From Metronic index.html line ~20)-->
-    <link href="<?= BASE_URL?>/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
-    <link href="<?= BASE_URL?>/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
+    <?php if (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'dark'): ?>
+        <link href="<?= BASE_URL?>/assets/plugins/global/plugins.dark.bundle.css" rel="stylesheet" type="text/css" />
+        <link href="<?= BASE_URL?>/assets/css/style.dark.bundle.css" rel="stylesheet" type="text/css" />
+    <?php else: ?>
+        <link href="<?= BASE_URL?>/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
+        <link href="<?= BASE_URL?>/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
+    <?php endif; ?>
     <!--end::Global Stylesheets Bundle-->
     <link rel="shortcut icon" href="<?= BASE_URL?>/assets/media/logos/favicon.ico" />
     <style>
@@ -41,6 +47,28 @@
         .feature-toggle-card:hover {
             border-color: #009ef7;
         }
+
+        /* Password visibility toggle styles */
+        .password-input-group {
+            position: relative;
+        }
+        .password-input-group input { padding-right: 45px !important; }
+        .password-toggle-btn { 
+            position: absolute; 
+            right: 0; 
+            top: 0; 
+            height: 100%;
+            width: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer; 
+            z-index: 10; 
+            color: #a1a5b7; 
+            user-select: none;
+            font-size: 1.2rem;
+        }
+        .password-toggle-btn:hover { color: #009ef7; }
     </style>
 </head>
 <!--begin::Body (class from Metronic index.html body tag)-->
@@ -53,15 +81,21 @@
         <div class="page d-flex flex-row flex-column-fluid">
 
             <!-- ===================== ASIDE / SIDEBAR (from Metronic index.html ~line 38) ===================== -->
-            <div id="kt_aside" class="aside aside-dark aside-hoverable" data-kt-drawer="true"
+            <?php 
+                $asideTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'dark') ? 'aside-dark' : 'aside-light'; 
+            ?>
+            <div id="kt_aside" class="aside <?= $asideTheme ?> aside-hoverable" data-kt-drawer="true"
                 data-kt-drawer-name="aside" data-kt-drawer-activate="{default: true, lg: false}"
                 data-kt-drawer-overlay="true" data-kt-drawer-width="{default:'200px', '300px': '250px'}"
                 data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_aside_mobile_toggle">
 
                 <!-- Aside Logo (from Metronic index.html) -->
                 <div class="aside-logo flex-column-auto" id="kt_aside_logo">
+                    <?php 
+                        $logoFile = ($asideTheme === 'aside-dark') ? 'logo-1-dark.svg' : 'logo-1.svg';
+                    ?>
                     <a href="<?= BASE_URL?>/admin" class="d-flex align-items-center" style="text-decoration: none;">
-                        <img alt="Logo" src="<?= BASE_URL?>/assets/media/logos/logo-1-dark.svg" class="h-25px logo" />
+                        <img alt="Logo" src="<?= BASE_URL?>/assets/media/logos/<?= $logoFile ?>" class="h-25px logo" />
                     </a>
                     <div id="kt_aside_toggle" class="btn btn-icon w-auto px-0 btn-active-color-primary aside-toggle"
                         data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body"
@@ -163,12 +197,17 @@
                 </div>
                 <!-- end Aside Menu -->
 
-                <!-- Aside Footer -->
                 <div class="aside-footer flex-column-auto pt-5 pb-7 px-5" id="kt_aside_footer">
                     <div class="d-flex align-items-center px-2 py-2"
                         style="background:rgba(255,255,255,0.05);border-radius:8px;">
                         <div class="symbol symbol-40px me-3">
-                            <img src="<?= BASE_URL?>/assets/media/avatars/150-26.jpg" alt="" />
+                            <?php if (!empty($_SESSION['user_avatar'])): ?>
+                                <img src="<?= $_SESSION['user_avatar'] ?>" alt="user" />
+                            <?php else: ?>
+                                <div class="symbol-label fs-5 bg-light-primary text-primary fw-bold">
+                                    <?= strtoupper(substr($_SESSION['user_name'] ?? 'A', 0, 1)) ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                         <div class="flex-grow-1">
                             <div class="text-white fw-bold fs-7">
@@ -283,41 +322,87 @@
                                     </div>
                                 </div>
 
+                                <!-- Theme Toggle -->
+                                <!-- <div class="d-flex align-items-center ms-1 ms-lg-3">
+                                    <button class="btn btn-icon btn-active-light-primary w-30px h-30px w-md-40px h-md-40px" id="kt_theme_toggle">
+                                        <?php if (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'dark'): ?>
+                                            <span>☀️</span>
+                                        <?php else: ?>
+                                            <span>🌙</span>
+                                        <?php endif; ?>
+                                    </button>
+                                </div> -->
+
                                 <!-- Layouts/Apps -->
-                                <div class="d-flex align-items-center ms-1 ms-lg-3">
-                                    <div
-                                        class="btn btn-icon btn-active-light-primary w-30px h-30px w-md-40px h-md-40px">
-                                        <span class="svg-icon svg-icon-1">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                                                xmlns="http://www.w3.org/2000/svg">
-                                                <rect x="2" y="2" width="9" height="9" rx="2" fill="black" />
-                                                <rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2"
-                                                    fill="black" />
-                                                <rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2"
-                                                    fill="black" />
-                                                <rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2"
-                                                    fill="black" />
-                                            </svg>
-                                        </span>
-                                    </div>
-                                </div>
 
                                 <!-- Profile -->
-                                <div class="d-flex align-items-center ms-1 ms-lg-3">
-                                    <div class="d-flex align-items-center p-2 rounded"
-                                        style="background: rgba(245,248,250,0.8);">
-                                        <a href="<?= BASE_URL ?>/admin/profile" class="d-flex align-items-center" style="text-decoration:none;">
-                                            <div class="symbol symbol-30px me-2">
-                                                <img src="<?= BASE_URL?>/assets/media/avatars/150-26.jpg" alt="" />
+                                <div class="d-flex align-items-center ms-1 ms-lg-3" id="kt_header_user_menu_toggle">
+                                    <div class="cursor-pointer symbol symbol-30px symbol-md-40px" 
+                                         data-kt-menu-trigger="click" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
+                                        <?php if (!empty($_SESSION['user_avatar'])): ?>
+                                            <img src="<?= $_SESSION['user_avatar'] ?>" alt="user" />
+                                        <?php else: ?>
+                                            <div class="symbol-label fs-5 bg-light-primary text-primary fw-bold">
+                                                <?= strtoupper(substr($_SESSION['user_name'] ?? 'A', 0, 1)) ?>
                                             </div>
-                                            <span class="fw-bolder text-dark text-hover-primary fs-7 me-3 d-none d-md-inline">
-                                                <?= htmlspecialchars($_SESSION['user_name'] ?? 'Admin')?>
-                                            </span>
-                                        </a>
-                                        <a href="<?= BASE_URL?>/logout" class="btn btn-sm btn-light-danger px-3 py-1">
-                                            Logout
-                                        </a>
+                                        <?php endif; ?>
                                     </div>
+
+                                    <!--begin::Menu-->
+                                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-primary fw-bold py-4 fs-6 w-275px" data-kt-menu="true">
+                                        <!--begin::Menu item-->
+                                        <div class="menu-item px-3">
+                                            <div class="menu-content d-flex align-items-center px-3">
+                                                <div class="symbol symbol-50px me-5">
+                                                    <?php if (!empty($_SESSION['user_avatar'])): ?>
+                                                        <img alt="Logo" src="<?= $_SESSION['user_avatar'] ?>" />
+                                                    <?php else: ?>
+                                                        <div class="symbol-label fs-3 bg-light-primary text-primary fw-bold">
+                                                            <?= strtoupper(substr($_SESSION['user_name'] ?? 'A', 0, 1)) ?>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <div class="d-flex flex-column">
+                                                    <div class="fw-bolder d-flex align-items-center fs-5">
+                                                        <?= htmlspecialchars($_SESSION['user_name'] ?? 'Admin')?>
+                                                        <span class="badge badge-light-success fw-bolder fs-8 px-2 py-1 ms-2">Pro</span>
+                                                    </div>
+                                                    <a href="#" class="fw-bold text-muted text-hover-primary fs-7">
+                                                        <?= htmlspecialchars($_SESSION['email'] ?? 'admin@metronic.com')?>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--end::Menu item-->
+                                        <div class="separator my-2"></div>
+                                        <!--begin::Menu item-->
+                                        <div class="menu-item px-5">
+                                            <a href="<?= BASE_URL ?>/admin/profile" class="menu-link px-5">My Profile</a>
+                                        </div>
+                                        <!--end::Menu item-->
+                                        <!--begin::Menu item-->
+                                        <div class="menu-item px-5">
+                                            <a href="<?= BASE_URL ?>/admin" class="menu-link px-5">My Dashboard</a>
+                                        </div>
+                                        <!--end::Menu item-->
+                                        <div class="separator my-2"></div>
+                                        <!--begin::Menu item-->
+                                        <div class="menu-item px-5">
+                                            <div class="menu-content px-5 d-flex align-items-center">
+                                                <span class="menu-title flex-grow-1">Dark Mode</span>
+                                                <div class="form-check form-switch form-check-custom form-check-solid">
+                                                    <input class="form-check-input w-30px h-20px" type="checkbox" value="1" id="kt_user_menu_dark_mode_toggle" <?= (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'dark') ? 'checked' : '' ?> />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--end::Menu item-->
+                                        <!--begin::Menu item-->
+                                        <div class="menu-item px-5">
+                                            <a href="<?= BASE_URL?>/logout" class="menu-link px-5 text-danger">Log Out</a>
+                                        </div>
+                                        <!--end::Menu item-->
+                                    </div>
+                                    <!--end::Menu-->
                                 </div>
                             </div>
                         </div>
@@ -408,6 +493,7 @@ endif; ?>
     <!-- ===================== JS BUNDLES (from Metronic index.html bottom scripts) ===================== -->
     <script src="<?= BASE_URL?>/assets/plugins/global/plugins.bundle.js"></script>
     <script src="<?= BASE_URL?>/assets/js/scripts.bundle.js"></script>
+    <script src="<?= BASE_URL?>/assets/js/theme_toggle.js"></script>
     <!-- end JS Bundles -->
 
 </body>

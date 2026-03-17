@@ -28,6 +28,8 @@ $router->get('/logout',   'AuthController',     'logout');
 $router->get('/dashboard',       'FrontendController', 'dashboard');
 $router->get('/profile',         'FrontendController', 'profile');
 $router->post('/profile/update', 'FrontendController', 'updateProfile');
+$router->post('/profile/update-avatar', 'FrontendController', 'updateAvatar');
+$router->post('/profile/update-password', 'FrontendController', 'updatePassword');
 $router->get('/reports',         'FrontendController', 'reports');
 $router->get('/documents',       'FrontendController', 'documents');
 $router->get('/calendar',        'FrontendController', 'calendar');
@@ -48,6 +50,7 @@ $router->post('/admin/users/permissions/{id}',            'AdminController', 'up
 
 $router->get('/admin/profile',                            'AdminController', 'profile');
 $router->post('/admin/profile/update',                    'AdminController', 'updateProfile');
+$router->post('/admin/profile/update-avatar',             'AdminController', 'updateAvatar');
 
 // ============================================================
 // DISPATCH

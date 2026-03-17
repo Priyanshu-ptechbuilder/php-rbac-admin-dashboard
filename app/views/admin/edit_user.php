@@ -20,15 +20,19 @@
                 </div>
                 <?php endif; ?>
 
-                <form method="POST" action="<?= BASE_URL ?>/admin/users/edit/<?= $user['id'] ?>">
+                <form method="POST" action="<?= BASE_URL ?>/admin/users/edit/<?= $user['hash_id'] ?>">
 
                     <!--begin::User Info card-->
                     <div class="d-flex flex-wrap flex-sm-nowrap mb-8">
-                        <div class="symbol symbol-100px symbol-lg-160px symbol-fixed position-relative me-7">
-                            <div class="symbol-label fw-bold fs-1"
-                                 style="background:#f1f4ff;color:#3e97ff;width:80px;height:80px;font-size:32px;display:flex;align-items:center;justify-content:center;border-radius:12px;">
-                                <?= strtoupper(substr($user['name'], 0, 1)) ?>
-                            </div>
+                        <div class="symbol symbol-100px symbol-lg-160px mb-7 me-7">
+                            <?php if (!empty($user['avatar'])): ?>
+                                <img src="<?= $user['avatar'] ?>" alt="user" />
+                            <?php else: ?>
+                                <div class="symbol-label fw-bold fs-1"
+                                     style="background:#f1f4ff;color:#3e97ff;width:100px;height:100px;font-size:32px;display:flex;align-items:center;justify-content:center;border-radius:12px;">
+                                    <?= strtoupper(substr($user['name'], 0, 1)) ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                         <div class="flex-grow-1">
                             <div class="d-flex justify-content-between align-items-start flex-wrap mb-2">
@@ -93,9 +97,12 @@
 
                     <div class="fv-row mb-7">
                         <label class="fw-bold fs-6 mb-2">New Password <span class="text-muted">(leave blank to keep current)</span></label>
-                        <input type="password" name="password"
-                               class="form-control form-control-solid"
-                               placeholder="Enter new password to change"/>
+                        <div class="password-input-group">
+                            <input type="password" name="password"
+                                   class="form-control form-control-solid"
+                                   placeholder="Enter new password to change"/>
+                            <span class="password-toggle-btn">👁️‍🗨️</span>
+                        </div>
                     </div>
 
                     <div class="row mb-7">

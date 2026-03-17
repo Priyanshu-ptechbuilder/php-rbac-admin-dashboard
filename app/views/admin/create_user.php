@@ -49,11 +49,14 @@
                     <!--begin::Input group-->
                     <div class="fv-row mb-7">
                         <label class="required fw-bold fs-6 mb-2">Password</label>
-                        <input type="password"
-                               name="password"
-                               class="form-control form-control-solid mb-3 mb-lg-0"
-                               placeholder="Min. 6 characters"
-                               required/>
+                        <div class="password-input-group">
+                            <input type="password"
+                                   name="password"
+                                   class="form-control form-control-solid mb-3 mb-lg-0"
+                                   placeholder="Min. 6 characters"
+                                   required/>
+                            <span class="password-toggle-btn">👁️‍🗨️</span>
+                        </div>
                     </div>
                     <!--end::Input group-->
 

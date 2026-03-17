@@ -33,7 +33,7 @@
                                 </div>
                             </div>
                             <div class="d-flex flex-wrap my-4">
-                                <a href="<?= BASE_URL ?>/admin/users/edit/<?= $user['id'] ?>"
+                                <a href="<?= BASE_URL ?>/admin/users/edit/<?= $user['hash_id'] ?>"
                                    class="btn btn-sm btn-light me-2">✏️ Edit User</a>
                                 <a href="<?= BASE_URL ?>/admin/users"
                                    class="btn btn-sm btn-light">← Back to Users</a>
@@ -75,7 +75,7 @@
                     </div>
                 </div>
 
-                <form method="POST" action="<?= BASE_URL ?>/admin/users/permissions/<?= $user['id'] ?>">
+                <form method="POST" action="<?= BASE_URL ?>/admin/users/permissions/<?= $user['hash_id'] ?>">
 
                     <div class="row g-5">
                         <?php if (empty($features)): ?>

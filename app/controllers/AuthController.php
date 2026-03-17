@@ -42,6 +42,7 @@ class AuthController extends Controller {
                 } else {
                     $_SESSION['user_id']   = $user['id'];
                     $_SESSION['user_name'] = $user['name'];
+                    $_SESSION['user_avatar'] = $user['avatar'];
                     $_SESSION['email']     = $user['email'];
                     $_SESSION['role']      = $user['role'];
 
@@ -100,6 +101,9 @@ class AuthController extends Controller {
 
     // GET /logout
     public function logout($params = []) {
+        if (isset($_SESSION['user_id'])) {
+            $this->userModel->updateLastLogout($_SESSION['user_id']);
+        }
         session_destroy();
         $this->redirect(BASE_URL . '/login');
     }

@@ -20,10 +20,24 @@ class AdminController extends Controller {
     // GET /admin  - Dashboard
     public function dashboard($params = []) {
         $this->requireAdmin();
+        
+        // Fetch all users from the database
+        $allUsers = $this->userModel->getAllUsers();
 
-        $totalUsers  = $this->userModel->getTotalUsers();
-        $activeUsers = $this->userModel->getActiveUsers();
-        $allUsers    = $this->userModel->getAllUsers();
+        // Calculate total and active users for stats
+        $totalUsers  = count($allUsers);
+        $activeUsers = count(array_filter($allUsers, function($u) { return ($u['status'] ?? '') === 'active'; }));
+
+        // Filter out THE current logged-in admin from the displayed list
+        $allUsers = array_filter($allUsers, function($u) {
+            return $u['id'] != $_SESSION['user_id'];
+        });
+
+        // Apply ID obfuscation to all users in the list
+        foreach ($allUsers as &$user) {
+            $user['hash_id'] = $this->obfuscateId($user['id']);
+        }
+        unset($user); 
 
         $data = [
             'pageTitle'   => 'Admin Dashboard',
@@ -50,9 +64,14 @@ class AdminController extends Controller {
     // POST /admin/profile/update
     public function updateProfile($params = []) {
         $this->requireAdmin();
-        $userId  = $_SESSION['user_id'];
-        $name    = trim($_POST['name'] ?? '');
-        $email   = trim($_POST['email'] ?? '');
+        $userId       = $_SESSION['user_id'];
+        $name         = trim($_POST['name'] ?? '');
+        $email        = trim($_POST['email'] ?? '');
+        $birthday     = trim($_POST['birthday'] ?? null);
+        $gender       = trim($_POST['gender'] ?? null);
+        $address      = trim($_POST['address'] ?? null);
+        $availability = trim($_POST['availability'] ?? 'Available now');
+        
         $error   = '';
         $success = '';
 
@@ -62,7 +81,7 @@ class AdminController extends Controller {
             $error = 'Email already in use.';
         } else {
             $user = $this->userModel->getUserById($userId);
-            $this->userModel->updateUser($userId, $name, $email, $user['role'], $user['status']);
+            $this->userModel->updateUser($userId, $name, $email, $user['role'], $user['status'], $birthday, $gender, $address, $availability);
             $_SESSION['user_name'] = $name;
             $success = 'Profile updated successfully.';
         }
@@ -72,10 +91,67 @@ class AdminController extends Controller {
         $this->view('frontend/profile', ['pageTitle' => 'Admin Profile', 'user' => $user, 'features' => $features, 'error' => $error, 'success' => $success], 'admin_layout');
     }
 
-    // GET /admin/users  - List all users
+    // POST /admin/profile/update-avatar
+    public function updateAvatar($params = []) {
+        $this->requireAdmin();
+        $userId = $_SESSION['user_id'];
+        $error  = '';
+        
+        if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
+            $fileTmpPath   = $_FILES['avatar']['tmp_name'];
+            $fileName      = $_FILES['avatar']['name'];
+            $fileNameCmps  = explode(".", $fileName);
+            $fileExtension = strtolower(end($fileNameCmps));
+            
+            $allowedfileExtensions = array('jpg', 'gif', 'png', 'jpeg');
+            if (in_array($fileExtension, $allowedfileExtensions)) {
+                // Use absolute path from project root
+                $projectRoot = dirname(__DIR__, 2);
+                $uploadDir = $projectRoot . '/public/assets/media/uploads/avatars/';
+                
+                if (!is_dir($uploadDir)) {
+                    @mkdir($uploadDir, 0777, true);
+                }
+
+                if (!is_writable($uploadDir)) {
+                    $error = 'Upload directory is not writable. Path: ' . $uploadDir;
+                } else {
+                    $newFileName = 'admin_' . md5(time() . $fileName) . '.' . $fileExtension;
+                    $dest_path = $uploadDir . $newFileName;
+                    
+                    if(move_uploaded_file($fileTmpPath, $dest_path)) {
+                        @chmod($dest_path, 0644);
+                        $avatarUrl = BASE_URL . '/assets/media/uploads/avatars/' . $newFileName;
+                        $this->userModel->updateAvatar($userId, $avatarUrl);
+                        $_SESSION['user_avatar'] = $avatarUrl;
+                        $this->redirect(BASE_URL . '/admin/profile?success=Avatar updated');
+                    } else {
+                        $error = 'Failed to move uploaded file to destination. Check permissions or PHP tmp settings.';
+                    }
+                }
+            } else {
+                $error = 'Invalid file type.';
+            }
+        }
+        
+        $user     = $this->userModel->getUserById($userId);
+        $this->view('frontend/profile', ['pageTitle' => 'Admin Profile', 'user' => $user, 'features' => [], 'error' => $error], 'admin_layout');
+    }
+
     public function users($params = []) {
         $this->requireAdmin();
         $users = $this->userModel->getAllUsers();
+        
+        // Filter out THE current logged-in admin from the displayed list
+        $users = array_filter($users, function($u) {
+            return $u['id'] != $_SESSION['user_id'];
+        });
+
+        // Obfuscate IDs for links while keeping original ID for display
+        foreach ($users as &$u) {
+            $u['hash_id'] = $this->obfuscateId($u['id']);
+        }
+
         $this->view('admin/users', ['pageTitle' => 'Manage Users', 'users' => $users], 'admin_layout');
     }
 
@@ -116,18 +192,19 @@ class AdminController extends Controller {
     // GET /admin/users/edit/{id}
     public function editUserForm($params = []) {
         $this->requireAdmin();
-        $id   = $params['id'] ?? 0;
+        $id   = $this->deobfuscateId($params['id'] ?? 0);
         $user = $this->userModel->getUserById($id);
         if (!$user) {
             $this->redirect(BASE_URL . '/admin/users');
         }
+        $user['hash_id'] = $this->obfuscateId($user['id']);
         $this->view('admin/edit_user', ['pageTitle' => 'Edit User', 'user' => $user], 'admin_layout');
     }
 
     // POST /admin/users/edit/{id}
     public function editUser($params = []) {
         $this->requireAdmin();
-        $id     = $params['id'] ?? 0;
+        $id     = $this->deobfuscateId($params['id'] ?? 0);
         $name   = trim($_POST['name'] ?? '');
         $email  = trim($_POST['email'] ?? '');
         $role   = $_POST['role'] ?? 'user';
@@ -162,7 +239,7 @@ class AdminController extends Controller {
     // POST /admin/users/delete/{id}
     public function deleteUser($params = []) {
         $this->requireAdmin();
-        $id = $params['id'] ?? 0;
+        $id = $this->deobfuscateId($params['id'] ?? 0);
 
         // Prevent deleting self
         if ($id == $_SESSION['user_id']) {
@@ -176,11 +253,12 @@ class AdminController extends Controller {
     // GET /admin/users/permissions/{id}
     public function permissionsForm($params = []) {
         $this->requireAdmin();
-        $id       = $params['id'] ?? 0;
+        $id       = $this->deobfuscateId($params['id'] ?? 0);
         $user     = $this->userModel->getUserById($id);
         if (!$user) {
             $this->redirect(BASE_URL . '/admin/users');
         }
+        $user['hash_id'] = $this->obfuscateId($user['id']);
         $features = $this->featureModel->getAllFeaturesForUser($id);
 
         $data = [
@@ -194,13 +272,13 @@ class AdminController extends Controller {
     // POST /admin/users/permissions/{id}
     public function updatePermissions($params = []) {
         $this->requireAdmin();
-        $id              = $params['id'] ?? 0;
+        $id              = $this->deobfuscateId($params['id'] ?? 0);
         $user            = $this->userModel->getUserById($id);
         if (!$user) {
             $this->redirect(BASE_URL . '/admin/users');
         }
         $enabledFeatures = $_POST['features'] ?? [];
         $this->featureModel->updatePermissions($id, $enabledFeatures);
-        $this->redirect(BASE_URL . '/admin/users/permissions/' . $id . '?success=Permissions updated');
+        $this->redirect(BASE_URL . '/admin/users/permissions/' . $this->obfuscateId($id) . '?success=Permissions updated');
     }
 }

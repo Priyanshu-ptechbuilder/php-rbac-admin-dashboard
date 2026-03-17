@@ -31,11 +31,17 @@ class User extends Model {
         return false;
     }
 
-    public function updateUser($id, $name, $email, $role, $status) {
+    public function updateUser($id, $name, $email, $role, $status, $birthday = null, $gender = null, $address = null, $availability = 'Available now') {
         $stmt = $this->db->prepare(
-            "UPDATE users SET name=?, email=?, role=?, status=?, updated_at=NOW() WHERE id=?"
+            "UPDATE users SET name=?, email=?, role=?, status=?, birthday=?, gender=?, address=?, availability=?, updated_at=NOW() WHERE id=?"
         );
-        $stmt->bind_param('ssssi', $name, $email, $role, $status, $id);
+        $stmt->bind_param('ssssssssi', $name, $email, $role, $status, $birthday, $gender, $address, $availability, $id);
+        return $stmt->execute();
+    }
+
+    public function updateAvatar($id, $avatarPath) {
+        $stmt = $this->db->prepare("UPDATE users SET avatar=? WHERE id=?");
+        $stmt->bind_param('si', $avatarPath, $id);
         return $stmt->execute();
     }
 
@@ -48,6 +54,12 @@ class User extends Model {
 
     public function deleteUser($id) {
         $stmt = $this->db->prepare("DELETE FROM users WHERE id=?");
+        $stmt->bind_param('i', $id);
+        return $stmt->execute();
+    }
+
+    public function updateLastLogout($id) {
+        $stmt = $this->db->prepare("UPDATE users SET last_logout=NOW() WHERE id=?");
         $stmt->bind_param('i', $id);
         return $stmt->execute();
     }

@@ -6,9 +6,38 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
-    <link href="<?= BASE_URL ?>/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
-    <link href="<?= BASE_URL ?>/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="shortcut icon" href="<?= BASE_URL ?>/assets/media/logos/favicon.ico" />
+    <?php if (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'dark'): ?>
+        <link href="<?= BASE_URL ?>/assets/plugins/global/plugins.dark.bundle.css" rel="stylesheet" type="text/css" />
+        <link href="<?= BASE_URL ?>/assets/css/style.dark.bundle.css" rel="stylesheet" type="text/css" />
+    <?php else: ?>
+        <link href="<?= BASE_URL ?>/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
+        <link href="<?= BASE_URL ?>/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
+    <?php endif; ?>
+    <style>
+        /* Password visibility toggle styles */
+        .password-input-group {
+            position: relative;
+        }
+        .password-input-group input { padding-right: 45px !important; }
+        .password-toggle-btn { 
+            position: absolute; 
+            right: 0; 
+            top: 0; 
+            height: 100%;
+            width: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer; 
+            z-index: 10; 
+            color: #a1a5b7; 
+            user-select: none;
+            font-size: 1.2rem;
+        }
+        .password-toggle-btn:hover { color: #009ef7; }
+    </style>
 </head>
 <body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed toolbar-enabled toolbar-fixed aside-enabled aside-fixed"
       style="--kt-toolbar-height:55px;--kt-toolbar-height-tablet-and-mobile:55px">
@@ -17,7 +46,10 @@
     <div class="page d-flex flex-row flex-column-fluid">
 
         <!-- SIDEBAR for frontend user -->
-        <div id="kt_aside" class="aside aside-dark aside-hoverable"
+        <?php 
+            $asideTheme = (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'dark') ? 'aside-dark' : 'aside-light'; 
+        ?>
+        <div id="kt_aside" class="aside <?= $asideTheme ?> aside-hoverable"
              data-kt-drawer="true" data-kt-drawer-name="aside"
              data-kt-drawer-activate="{default: true, lg: false}"
              data-kt-drawer-overlay="true"
@@ -26,8 +58,11 @@
              data-kt-drawer-toggle="#kt_aside_mobile_toggle">
 
             <div class="aside-logo flex-column-auto" id="kt_aside_logo">
+                <?php 
+                    $logoFile = ($asideTheme === 'aside-dark') ? 'logo-1-dark.svg' : 'logo-1.svg';
+                ?>
                 <a href="<?= BASE_URL ?>/dashboard">
-                    <img alt="Logo" src="<?= BASE_URL ?>/assets/media/logos/logo-1-dark.svg" class="h-25px logo" />
+                    <img alt="Logo" src="<?= BASE_URL ?>/assets/media/logos/<?= $logoFile ?>" class="h-25px logo" />
                 </a>
                 <div id="kt_aside_toggle" class="btn btn-icon w-auto px-0 btn-active-color-primary aside-toggle"
                      data-kt-toggle="true" data-kt-toggle-state="active"
@@ -96,7 +131,13 @@
             <div class="aside-footer flex-column-auto pt-5 pb-7 px-5" id="kt_aside_footer">
                 <div class="d-flex align-items-center px-2 py-2" style="background:rgba(255,255,255,0.05);border-radius:8px;">
                     <div class="symbol symbol-40px me-3">
-                        <img src="<?= BASE_URL ?>/assets/media/avatars/150-1.jpg" alt=""/>
+                        <?php if (!empty($_SESSION['user_avatar'])): ?>
+                            <img src="<?= $_SESSION['user_avatar'] ?>" alt="user" />
+                        <?php else: ?>
+                            <div class="symbol-label fs-5 bg-light-primary text-primary fw-bold">
+                                <?= strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)) ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <div class="flex-grow-1">
                         <div class="text-white fw-bold fs-7"><?= htmlspecialchars($_SESSION['user_name'] ?? '') ?></div>
@@ -130,20 +171,153 @@
                             </span>
                         </div>
                     </div>
+
+
+
+                    
                     <div class="d-flex align-items-stretch justify-content-between flex-lg-grow-1">
                         <div class="d-flex align-items-center">
                             <h3 class="text-dark fw-bolder my-1 fs-3"><?= htmlspecialchars($pageTitle ?? '') ?></h3>
                         </div>
                         <div class="d-flex align-items-stretch flex-shrink-0">
-                            <div class="d-flex align-items-center ms-1 ms-lg-3">
-                                <a href="<?= BASE_URL ?>/profile" class="d-flex align-items-center" style="text-decoration:none;">
-                                    <div class="symbol symbol-30px me-3">
-                                        <img src="<?= BASE_URL ?>/assets/media/avatars/150-1.jpg" alt=""/>
+
+                         <!-- Search -->
+                                <div class="d-flex align-items-center ms-1 ms-lg-3">
+                                    <div
+                                        class="btn btn-icon btn-active-light-primary w-30px h-30px w-md-40px h-md-40px">
+                                        <span class="svg-icon svg-icon-1">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                xmlns="http://www.w3.org/2000/svg">
+                                                <rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2"
+                                                    rx="1" transform="rotate(45 17.0365 15.1223)" fill="black" />
+                                                <path
+                                                    d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z"
+                                                    fill="black" />
+                                            </svg>
+                                        </span>
                                     </div>
-                                    <span class="fw-bolder fs-7 text-dark text-hover-primary">
-                                        <?= htmlspecialchars($_SESSION['user_name'] ?? '') ?>
-                                    </span>
-                                </a>
+                                </div>
+
+                                <!-- Chat -->
+                                <div class="d-flex align-items-center ms-1 ms-lg-3">
+                                    <div
+                                        class="btn btn-icon btn-active-light-primary w-30px h-30px w-md-40px h-md-40px position-relative">
+                                        <span class="svg-icon svg-icon-1">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                xmlns="http://www.w3.org/2000/svg">
+                                                <path opacity="0.3"
+                                                    d="M20 3H4C2.89543 3 2 3.89543 2 5V16C2 17.1046 2.89543 18 4 18H4.5C5.05228 18 5.5 18.4477 5.5 19V21.5052C5.5 22.1441 6.21212 22.5253 6.74376 22.1708L11.4885 19.0077C12.4741 18.3506 13.6321 18 14.8167 18H20C21.1046 18 22 17.1046 22 16V5C22 3.89543 21.1046 3 20 3Z"
+                                                    fill="black" />
+                                                <rect x="6" y="12" width="7" height="2" rx="1" fill="black" />
+                                                <rect x="6" y="7" width="12" height="2" rx="1" fill="black" />
+                                            </svg>
+                                        </span>
+                                        <span
+                                            class="bullet bullet-dot bg-success h-6px w-6px position-absolute translate-middle top-0 start-50 animation-blink"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Notifications -->
+                                <div class="d-flex align-items-center ms-1 ms-lg-3">
+                                    <div
+                                        class="btn btn-icon btn-active-light-primary w-30px h-30px w-md-40px h-md-40px">
+                                        <span class="svg-icon svg-icon-1">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                xmlns="http://www.w3.org/2000/svg">
+                                                <path opacity="0.3"
+                                                    d="M12 22C13.6569 22 15 20.6569 15 19C15 17.3431 13.6569 16 12 16C10.3431 16 9 17.3431 9 19C9 20.6569 10.3431 22 12 22Z"
+                                                    fill="black" />
+                                                <path
+                                                    d="M19 15V18C19 18.6 18.6 19 18 19H6C5.4 19 5 18.6 5 18V15C6.1 15 7 14.1 7 13V10C7 7.6 8.7 5.6 11 5.1V3C11 2.4 11.4 2 12 2C12.6 2 13 2.4 13 3V5.1C15.3 5.6 17 7.6 17 10V13C17 14.1 17.9 15 19 15ZM11 10C11 9.4 11.4 9 12 9C12.6 9 13 8.6 13 8C13 7.4 12.6 7 12 7C10.3 7 9 8.3 9 10C9 10.6 9.4 11 10 11C10.6 11 11 10.6 11 10Z"
+                                                    fill="black" />
+                                            </svg>
+                                        </span>
+                                    </div>
+                                </div>
+
+
+                        
+                            <!-- Theme Toggle -->
+                            <!-- <div class="d-flex align-items-center ms-1 ms-lg-3">
+                                <button class="btn btn-icon btn-active-light-primary w-30px h-30px w-md-40px h-md-40px" id="kt_theme_toggle">
+                                    <?php if (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'dark'): ?>
+                                        <span>☀️</span>
+                                    <?php else: ?>
+                                        <span>🌙</span>
+                                    <?php endif; ?>
+                                </button>
+                            </div> -->
+
+                            <!-- Profile Dropdown -->
+                            <div class="d-flex align-items-center ms-1 ms-lg-3" id="kt_header_user_menu_toggle">
+                                <div class="cursor-pointer symbol symbol-30px symbol-md-40px" 
+                                     data-kt-menu-trigger="click" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
+                                    <div class="symbol symbol-30px symbol-md-40px">
+                                        <?php if (!empty($_SESSION['user_avatar'])): ?>
+                                            <img src="<?= $_SESSION['user_avatar'] ?>" alt="user" />
+                                        <?php else: ?>
+                                            <div class="symbol-label fs-5 bg-light-primary text-primary fw-bold">
+                                                <?= strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)) ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
+                                <!--begin::Menu-->
+                                <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-primary fw-bold py-4 fs-6 w-275px" data-kt-menu="true">
+                                    <!--begin::Menu item-->
+                                    <div class="menu-item px-3">
+                                        <div class="menu-content d-flex align-items-center px-3">
+                                            <div class="symbol symbol-50px me-5">
+                                                <?php if (!empty($_SESSION['user_avatar'])): ?>
+                                                    <img alt="Logo" src="<?= $_SESSION['user_avatar'] ?>" />
+                                                <?php else: ?>
+                                                    <div class="symbol-label fs-3 bg-light-primary text-primary fw-bold">
+                                                        <?= strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)) ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="d-flex flex-column">
+                                                <div class="fw-bolder d-flex align-items-center fs-5">
+                                                    <?= htmlspecialchars($_SESSION['user_name'] ?? 'User') ?>
+                                                    <span class="badge badge-light-success fw-bolder fs-8 px-2 py-1 ms-2">Pro</span>
+                                                </div>
+                                                <a href="#" class="fw-bold text-muted text-hover-primary fs-7">
+                                                    <?= htmlspecialchars($_SESSION['email'] ?? 'user@example.com') ?>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end::Menu item-->
+                                    <div class="separator my-2"></div>
+                                    <!--begin::Menu item-->
+                                    <div class="menu-item px-5">
+                                        <a href="<?= BASE_URL ?>/profile" class="menu-link px-5">My Profile</a>
+                                    </div>
+                                    <!--end::Menu item-->
+                                    <!--begin::Menu item-->
+                                    <div class="menu-item px-5">
+                                        <a href="<?= BASE_URL ?>/dashboard" class="menu-link px-5">My Dashboard</a>
+                                    </div>
+                                    <!--end::Menu item-->
+                                    <div class="separator my-2"></div>
+                                    <!--begin::Menu item-->
+                                    <div class="menu-item px-5">
+                                        <div class="menu-content px-5 d-flex align-items-center">
+                                            <span class="menu-title flex-grow-1">Dark Mode</span>
+                                            <div class="form-check form-switch form-check-custom form-check-solid">
+                                                <input class="form-check-input w-30px h-20px" type="checkbox" value="1" id="kt_user_menu_dark_mode_toggle" <?= (isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'dark') ? 'checked' : '' ?> />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end::Menu item-->
+                                    <!--begin::Menu item-->
+                                    <div class="menu-item px-5">
+                                        <a href="<?= BASE_URL ?>/logout" class="menu-link px-5 text-danger">Log Out</a>
+                                    </div>
+                                    <!--end::Menu item-->
+                                </div>
+                                <!--end::Menu-->
                             </div>
                         </div>
                     </div>
@@ -189,5 +363,6 @@
 
 <script src="<?= BASE_URL ?>/assets/plugins/global/plugins.bundle.js"></script>
 <script src="<?= BASE_URL ?>/assets/js/scripts.bundle.js"></script>
+<script src="<?= BASE_URL ?>/assets/js/theme_toggle.js"></script>
 </body>
 </html>
